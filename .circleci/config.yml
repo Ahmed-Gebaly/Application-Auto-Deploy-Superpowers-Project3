@@ -3,6 +3,14 @@ version: 2.1
 orbs: 
   slack: circleci/slack@4.1
 
+commands:
+  notify_on_failure:
+    steps:
+      - slack/notify:
+          event: fail
+          channel: cicd
+          template: basic_fail_1
+
 # commands:
 #   destroy-environment:
 #     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -52,6 +60,7 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-deps
+      - notify_on_failure
   build-backend:
     docker:
       - image: cimg/node:13.8.0
@@ -68,6 +77,7 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-deps
+      - notify_on_failure
 
   test-frontend:
     docker:
@@ -82,6 +92,7 @@ jobs:
             cd frontend
             npm install
             npm test
+      - notify_on_failure
   test-backend:
     docker:
       - image: cimg/node:13.8.0
@@ -95,7 +106,8 @@ jobs:
             cd backend
             npm install
             npm test
-       
+      - notify_on_failure
+
   scan-frontend:
     docker:
       - image: cimg/node:13.8.0
@@ -110,6 +122,7 @@ jobs:
             npm install
             npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
+      - notify_on_failure
   scan-backend:
     docker:
       - image: cimg/node:13.8.0
@@ -125,16 +138,12 @@ jobs:
             #npm audit fix --force --audit-level=critical
             #npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
-
-  slack_ notify:
+      - notify_on_failure
+      
+  notify_on_success:
     docker:
       - image: cimg/base:stable
     steps:
-      - slack/notify:
-          event: fail
-          channel: cicd
-          mentions: '@EngineeringTeam'
-          template: basic_fail_1
       - slack/notify:
           event: pass
           channel: cicd
@@ -318,8 +327,7 @@ workflows:
           requires: [build-frontend]
       - scan-backend:
           requires: [build-backend]
-
-      - slack_ notify:
+      - notify_on_success:
           requires: 
             - build-frontend
             - build-backend
