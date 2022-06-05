@@ -314,13 +314,20 @@ workflows:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
       - scan-frontend:
           requires: [build-frontend]
+      - scan-backend:
+          requires: [build-backend]
+
       - slack_ notify:
           requires: 
-            - ""
+            - build-frontend
+            - build-backend
+            - test-frontend
+            - test-backend
+            - scan-frontend
+            - scan-backend
+
       # - deploy-infrastructure:
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       #     filters:
