@@ -139,6 +139,17 @@ jobs:
             npm audit --audit-level=critical
       - notify_on_failure
 
+<<<<<<< HEAD
+=======
+  notify_on_success:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - slack/notify:
+          event: pass
+          channel: cicd
+          template: success_tagged_deploy_1
+>>>>>>> cadcb22eec83a7f3c6c15e9546e13c1baaa9bc6a
 
 #   deploy-infrastructure:
 #     docker:
