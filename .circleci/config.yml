@@ -247,8 +247,11 @@ jobs:
           name: Run migrations
           command: |
             cd backend
+            echo $?
             npm install
+            echo $?
             npm run migrations > migrations_dump.txt
+            echo $?
      
       - run:
           name: Send migration status to o kvdb.io OR memstash.io
