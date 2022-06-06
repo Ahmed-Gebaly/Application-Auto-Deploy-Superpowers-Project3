@@ -249,7 +249,8 @@ jobs:
             cd backend
             echo "cd backend = $?"
             npm install
-            echo "npm install = $?"
+            npm -v
+            echo -e "\n npm install = $? \n"
             npm run migrations > migrations_dump.txt
             echo "npm run = $?"
      
