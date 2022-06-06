@@ -217,7 +217,8 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
       - destroy-environment 
-
+      - notify_on_failure
+      
   configure-infrastructure:
     docker:
       - image: cimg/base:stable
@@ -236,6 +237,7 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment
+      - notify_on_failure
 
   run-migrations:
     docker:
@@ -261,6 +263,7 @@ jobs:
             fi
       - destroy-environment
       - revert-migrations
+      - notify_on_failure
 
   deploy-frontend:
     docker:
@@ -293,7 +296,8 @@ jobs:
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment
       - revert-migrations
-                    
+      - notify_on_failure
+
   deploy-backend:
     docker:
       - image: cimg/base:stable
@@ -332,6 +336,7 @@ jobs:
             ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment
       - revert-migrations
+      - notify_on_failure
 
   smoke-test:
     docker:
@@ -366,6 +371,7 @@ jobs:
             fi
       - destroy-environment
       - revert-migrations
+      - notify_on_failure
 
   cloudfront-update:
     docker:
@@ -391,26 +397,31 @@ jobs:
               --stack-name InitialStack
       - destroy-environment
       - revert-migrations
+      - notify_on_failure
 
-
-# cleanup:
-#     docker:
-#       # Docker image here
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Get old stack workflow id
-#           command: |
-#             # your code here
-#             export OldWorkflowID="the id here"
-#             export STACKS=[] #put the list of stacks here
-#       - run:
-#           name: Remove old stacks and files
-#           command: |
-#             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-#             then
-#               # your code here
-#             fi
+  cleanup:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - install_awscli
+      - install_nodejs
+      - run:
+          name: Remove old stacks and files
+          command: |
+            export STACKS=($(aws cloudformation list-stacks \
+                --query "StackSummaries[*].StackName" \
+                --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+            echo Stack names: "${STACKS[@]}"
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/${KVDB_BUCKET}/old_workflow_id)
+            echo Old Workflow ID: $OldWorkflowID 
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+            then
+              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            fi
+      - notify_on_failure
 
 workflows:
   default:
@@ -425,14 +436,6 @@ workflows:
           requires: [build-frontend]
       - scan-backend:
           requires: [build-backend]
-      - notify_on_success:
-          requires: 
-            - build-frontend
-            - build-backend
-            - test-frontend
-            - test-backend
-            - scan-frontend
-            - scan-backend
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
@@ -450,5 +453,6 @@ workflows:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - cleanup:
+          requires: [cloudfront-update]
+      - notify_on_success
