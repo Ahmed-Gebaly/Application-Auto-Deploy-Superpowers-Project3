@@ -11,3 +11,11 @@ scrape_configs:
         filters:
           - name: tag:Project
             values: [Udapeople]
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Project, __meta_ec2_tag_Name]
+        separator: "_"
+        target_label: instance
+      - source_labels: [__meta_ec2_instance_id]
+        target_label: instance_id
+      - source_labels: [__meta_ec2_public_dns_name]
+        target_label: public_dns_name

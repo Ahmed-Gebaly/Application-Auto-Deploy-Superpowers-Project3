@@ -1,0 +1,93 @@
+Description: >
+  Prometheus Server.
+
+Resources:
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Prometheus-SG
+      GroupDescription: Allow ports 22, 9090, 9093, and 9100.
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9090
+          ToPort: 9090
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9090
+          ToPort: 9090
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9100
+          ToPort: 9100
+          CidrIp: 0.0.0.0/0
+
+  EC2ReadOnlyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess
+      RoleName: Prometheus-Role
+
+  ProfileWithRolesForOurApp:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      Path: /
+      Roles: 
+        - !Ref EC2ReadOnlyRole
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      UserData: 
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt install wget -y
+            sudo apt-get install awscli -y
+            ### Install Prometheus ##
+            sudo useradd -r --no-create-home -s /usr/sbin/nologin prometheus
+            wget https://github.com/prometheus/prometheus/releases/download/v2.36.0/prometheus-2.36.0.linux-amd64.tar.gz
+            tar xvzf prometheus-2.36.0.linux-amd64.tar.gz
+            sudo mv -v prometheus-2.36.0.linux-amd64 /opt/prometheus
+            sudo wget -O /opt/prometheus/prometheus.yml https://raw.githubusercontent.com/Ahmed-Gebaly/Application-Auto-Deploy-Superpowers-Project3/main/prometheus/prometheus.yml
+            sudo chown -Rfv root:root /opt/prometheus
+            sudo chmod -Rfv 0755 /opt/prometheus
+            sudo mkdir -v /opt/prometheus/data
+            sudo chown -Rfv prometheus:prometheus /opt/prometheus/data
+            sudo wget -O /etc/systemd/system/prometheus.service https://raw.githubusercontent.com/Ahmed-Gebaly/Application-Auto-Deploy-Superpowers-Project3/main/prometheus/prometheus.service
+            ### Install Node_Exporter ###
+            sudo useradd -r --no-create-home -s /usr/sbin/nologin node_exporter
+            wget https://github.com/prometheus/node_exporter/releases/download/v1.3.1/node_exporter-1.3.1.linux-amd64.tar.gz
+            tar xvzf node_exporter-1.3.1.linux-amd64.tar.gz
+            sudo mv -v node_exporter-1.3.1.linux-amd64/node_exporter /usr/local/bin/
+            sudo chown root:root /usr/local/bin/node_exporter
+            sudo wget -O /etc/systemd/system/node-exporter.service https://raw.githubusercontent.com/Ahmed-Gebaly/Application-Auto-Deploy-Superpowers-Project3/main/prometheus/node-exporter.service
+            ### Enable Prometheus amd Node_Export
+            sudo systemctl daemon-reload
+            sudo systemctl start prometheus.service
+            sudo systemctl enable prometheus.service
+            sudo systemctl start node-exporter.service
+            sudo systemctl enable node-exporter.service
+      InstanceType: t2.micro
+      SecurityGroups:
+        - Ref: InstanceSecurityGroup
+      KeyName: PrometheusKey
+      ImageId: ami-0cb4e786f15603b0d
+      IamInstanceProfile: !Ref ProfileWithRolesForOurApp
+      Tags:
+        - Key: Name
+          Value: Prometheus Server
+        - Key: Project
+          Value: Udapeople
