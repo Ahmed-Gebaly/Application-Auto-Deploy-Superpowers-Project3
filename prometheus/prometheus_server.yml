@@ -101,5 +101,7 @@ Resources:
       Tags:
         - Key: Name
           Value: Prometheus Server
+        - Key: Project
+          Value: Udapeople
         - Key: Monitoring
           Value: Prometheus

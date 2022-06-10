@@ -19,10 +19,8 @@ scrape_configs:
       - region: us-west-2
         port: 9100
         filters:
-          - name: tag:project
-            values: [udapeople]
-          - name: tag:Monitoring
-            values: [Prometheus]
+          - name: tag:Project
+            values: [Udapeople]
     relabel_configs:
       - source_labels: [__meta_ec2_tag_Project, __meta_ec2_tag_Name]
         separator: "_"
