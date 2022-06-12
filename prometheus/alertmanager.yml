@@ -1,15 +1,14 @@
 global:
   resolve_timeout: 1m
-  slack_api_url: 'https://hooks.slack.com/services/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'
+  slack_api_url: 'https://hooks.slack.com/services/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'
 
 route:
   group_by: [Alertname]
-  receiver: 
-    - email-me
-    - slack-notifications
-
+  repeat_interval: 1h
+  receiver: notifications
+  
 receivers:
-- name: email-me
+- name: notifications
   email_configs:
   - to: ahmed.a.elgebaly.95@gmail.com
     from: uadacity.fwd@gmail.com
@@ -18,8 +17,6 @@ receivers:
     auth_identity: uadacity.fwd@gmail.com
     auth_password: bxdrhibcyqosvrpq
     send_resolved: true
-
-- name: 'slack-notifications'
   slack_configs:
   - channel: '#monitoring-instances'
     send_resolved: true
