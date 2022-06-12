@@ -90,8 +90,8 @@ Resources:
             sudo systemctl enable prometheus.service
             sudo systemctl start node-exporter.service
             sudo systemctl enable node-exporter.service
-            # sudo systemctl start alertmanager.service
-            # sudo systemctl enable alertmanager.service
+            sudo systemctl start alertmanager.service
+            sudo systemctl enable alertmanager.service
       InstanceType: t2.micro
       SecurityGroups:
         - Ref: InstanceSecurityGroup

@@ -5,7 +5,7 @@ global:
     monitor: 'prometheus'
 
 rule_files:   
-  - /opt/alertmanager/rules.yml
+  - /opt/prometheus/rules.yml
 
 alerting:
   alertmanagers:
