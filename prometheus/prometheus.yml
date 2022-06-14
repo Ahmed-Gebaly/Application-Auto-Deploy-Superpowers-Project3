@@ -37,7 +37,15 @@ scrape_configs:
         filters:
           - name: tag:Monitoring
             values: [Prometheus]
-            
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Project, __meta_ec2_tag_Name]
+        separator: "_"
+        target_label: instance
+      - source_labels: [__meta_ec2_instance_id]
+        target_label: instance_id
+      - source_labels: [__meta_ec2_public_dns_name]
+        target_label: public_dns_name
+           
   - job_name: 'node_exporter'
     ec2_sd_configs:
       - region: us-west-2
@@ -45,3 +53,11 @@ scrape_configs:
         filters:
           - name: tag:Monitoring
             values: [Prometheus]
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Project, __meta_ec2_tag_Name]
+        separator: "_"
+        target_label: instance
+      - source_labels: [__meta_ec2_instance_id]
+        target_label: instance_id
+      - source_labels: [__meta_ec2_public_dns_name]
+        target_label: public_dns_name
