@@ -8,7 +8,7 @@ groups:
       severity: 'CRITICAL'
     annotations:
       summary: "Instance {{ $labels.instance }} is down"
-      description: " Server {{ $labels.instance }} is Down"
+      description: " Server {{ $labels.public_dns_name }} is Down"
 
 - name: HostOutOfMemory
   rules:
