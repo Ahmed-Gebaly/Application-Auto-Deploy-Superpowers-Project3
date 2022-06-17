@@ -1,3 +1,5 @@
 URL01: https://github.com/Ahmed-Gebaly/Application-Auto-Deploy-Superpowers-Project3
-URL02: https://udapeople-24e7fd9.s3.us-west-2.amazonaws.com/index.html
+URL02: http://udapeople-cc549d2.s3.us-west-2.amazonaws.com/index.html
 URL03: http://d1c9x1homzlf30.cloudfront.net
+
+test
