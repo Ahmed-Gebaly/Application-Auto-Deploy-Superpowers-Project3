@@ -10,17 +10,6 @@ groups:
       summary: "Instance {{ $labels.instance }} is down"
       description: " Server {{ $labels.instance }} is Down"
 
-- name: Up
-  rules:
-  - alert: InstanceUP
-    expr: up != 0
-    for: 3m
-    labels:
-      severity: 'INFORMATIONAL'
-    annotations:
-      summary: "Instance {{ $labels.instance }} is Up Now"
-      description: " Server {{ $labels.instance }} is Up ."
-
 - name: HostOutOfMemory
   rules:
   - alert: HostOutOfMemory
